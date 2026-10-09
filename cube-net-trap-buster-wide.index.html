@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F2DE">
+<meta name="description" content="A 25-second walkthrough that finds which flat net folds into a target cube.">
+<title>Cube Net Trap-Buster</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@400;500;600&display=swap">
+<style>
+/* Layout: the stage fills its box. Portrait boxes get the stacked phone layout, wide boxes get two columns. --u is one design unit, sized so the layout always fits. */
+:root{
+  --cream:#F7F2DE; --paper:#FFFDF4; --navy:#294A70; --gold:#FFCC2E; --crimson:#AD0404; --green:#00FF00; --ink:#1A1A1A;
+  --page:#E9E3CC; --page-fg:#294A70; --btn-bg:#294A70; --btn-fg:#FFFDF4; --line:#c9c2a4;
+  --display:'Montserrat','Poppins',Arial,sans-serif; --body:'Poppins','Montserrat',Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#10151B;--page-fg:#EDE7D0;--btn-bg:#FFCC2E;--btn-fg:#1A1A1A;--line:#2c3744;color-scheme:dark}}
+:root[data-theme="dark"]{--page:#10151B;--page-fg:#EDE7D0;--btn-bg:#FFCC2E;--btn-fg:#1A1A1A;--line:#2c3744;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--cream);color:var(--navy);font-family:var(--body)}
+.wrap{height:100%}
+[hidden]{display:none!important}
+.stage{position:relative;container-type:size;width:100%;height:100%;background:var(--cream);color:var(--navy);overflow:hidden}
+.inner{position:absolute;inset:0;--u:min(1cqw,calc(1cqh * 100 / 177))}
+.prog{position:absolute;left:0;right:0;top:0;height:calc(1.4*var(--u));background:rgba(41,74,112,.15);z-index:5}
+.prog i{display:block;height:100%;width:0;background:var(--navy)}
+.scene{position:absolute;inset:0;padding:calc(9*var(--u)) calc(7*var(--u)) calc(6*var(--u));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(4.5*var(--u));opacity:0;visibility:hidden;transition:opacity .35s,visibility 0s .35s;text-align:center}
+.stage[data-scene="1"] .s1,.stage[data-scene="2"] .s2,.stage[data-scene="3"] .s3,.stage[data-scene="4"] .s4{opacity:1;visibility:visible;transition:opacity .35s}
+h1,h2{font-family:var(--display);font-weight:800;margin:0;line-height:1.1;text-wrap:balance}
+h1{font-size:calc(10*var(--u))}
+h2{font-size:calc(6.6*var(--u))}
+p{margin:0}
+.tag{font-size:calc(4.4*var(--u));font-weight:500}
+.ctl{position:absolute;right:calc(2.5*var(--u));top:calc(3.2*var(--u));display:flex;gap:calc(1.6*var(--u));z-index:6}
+button{font:600 14px var(--body);background:var(--navy);color:var(--paper);border:0;border-radius:10px;padding:10px 16px;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.ctl button{font:600 max(11px,calc(2.6*var(--u))) var(--body);padding:max(6px,calc(1.3*var(--u))) max(10px,calc(2.4*var(--u)));border-radius:max(8px,calc(1.8*var(--u)))}
+.gate{position:absolute;inset:0;z-index:10;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(3.5*var(--u));text-align:center;padding:calc(8*var(--u))}
+.gate h1{font-size:calc(9*var(--u))}
+.gate .go{font:800 calc(4.6*var(--u)) var(--display);background:var(--gold);color:var(--ink);border:calc(.7*var(--u)) solid var(--navy);border-radius:calc(2*var(--u));padding:calc(2.6*var(--u)) calc(7*var(--u))}
+.gate .alt{font:600 calc(3.6*var(--u)) var(--body);background:transparent;color:var(--navy);border:2px solid var(--navy);border-radius:calc(2*var(--u));padding:calc(1.8*var(--u)) calc(5*var(--u))}
+.gate small{font-size:calc(3.1*var(--u));opacity:.8;max-width:calc(70*var(--u))}
+
+/* Scene 1 */
+.bar{width:calc(36*var(--u));height:calc(1.4*var(--u));background:var(--gold);border-radius:calc(2*var(--u))}
+.cubeWrap{position:relative;width:calc(34*var(--u));aspect-ratio:1;perspective:900px;margin:calc(10*var(--u)) 0 calc(6*var(--u))}
+.bbox{position:absolute;inset:-16%;border:calc(.9*var(--u)) solid var(--navy);border-radius:calc(3*var(--u));animation:bpulse 1.6s ease-in-out infinite}
+@keyframes bpulse{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.06);opacity:1}}
+.cube{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(-26deg) rotateY(35deg);animation:sway 5s ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotateX(-26deg) rotateY(14deg)}to{transform:rotateX(-26deg) rotateY(56deg)}}
+.f{position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:0 0;background:var(--paper);box-shadow:inset 0 0 0 2px var(--ink);backface-visibility:hidden}
+.f svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+[data-scene="1"] .title{animation:snapIn .6s cubic-bezier(.2,1.4,.4,1) both}
+[data-scene="1"] .cubeWrap{animation:popIn .7s .4s both}
+[data-scene="1"] .tag{animation:slideUp .6s 1.2s both}
+@keyframes snapIn{from{opacity:0;transform:translateY(calc(-6*var(--u))) scale(.85)}to{opacity:1;transform:none}}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes slideUp{from{opacity:0;transform:translateY(calc(6*var(--u)))}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* Nets */
+.netBox svg{width:100%;height:auto;display:block;overflow:visible}
+.cell{fill:var(--paper);stroke:var(--navy);stroke-width:2;stroke-opacity:.6}
+.fold{stroke:var(--navy);stroke-width:2;stroke-dasharray:5 4}
+.cellg{transform-box:fill-box;transform-origin:center}
+
+/* Scene 2 */
+.s2 .netBox{width:calc(62*var(--u))}
+.unfold .folds{opacity:0}
+[data-scene="2"] .s2h{animation:slideUp .6s both}
+[data-scene="2"] .unfold .cellg{animation:unfold 1.4s cubic-bezier(.3,1.3,.5,1) var(--d) both}
+@keyframes unfold{from{transform:translate(var(--dx),var(--dy)) scale(.25);opacity:0}to{transform:none;opacity:1}}
+[data-scene="2"] .unfold .folds{animation:fadeIn .5s 3.4s forwards}
+[data-scene="2"] .hl{animation:glow 1.1s 4.2s ease-in-out infinite alternate both}
+@keyframes glow{from{fill:#FFFDF4}to{fill:#FFCC2E}}
+.beam{opacity:0}
+[data-scene="2"] .beam{animation:fadeIn .4s 4.6s forwards,march 1s 4.6s linear infinite}
+@keyframes march{to{stroke-dashoffset:-24}}
+.chip{background:var(--navy);color:var(--paper);border-radius:99px;padding:calc(1.8*var(--u)) calc(4.5*var(--u));font-weight:600;font-size:calc(3.9*var(--u))}
+[data-scene="2"] .chip{animation:slideUp .5s 5.4s both}
+.s2 .why{font-size:calc(4.1*var(--u));max-width:calc(80*var(--u))}
+[data-scene="2"] .s2 .why{animation:slideUp .5s 6.4s both}
+
+/* Scene 3 */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(3*var(--u));width:100%}
+.card{position:relative;background:var(--paper);border:calc(.6*var(--u)) solid #d6cfb2;border-radius:calc(3*var(--u));padding:calc(5*var(--u)) calc(2*var(--u)) calc(2.5*var(--u));min-width:0}
+.lab{position:absolute;left:calc(2.2*var(--u));top:calc(1.2*var(--u));font:800 calc(4.2*var(--u)) var(--display)}
+.card svg{width:100%;height:auto;display:block}
+.stamp{position:absolute;left:50%;top:48%;width:calc(17*var(--u));opacity:0}
+.why3{font-size:calc(3.2*var(--u));font-weight:600;color:var(--crimson);margin-top:calc(1.8*var(--u));min-height:calc(8*var(--u));opacity:0}
+[data-scene="3"] .s3h{animation:slideUp .6s both}
+[data-scene="3"] .card{animation:slideUp .5s both}
+[data-scene="3"] .card.b{animation-delay:.1s}
+[data-scene="3"] .card.c{animation-delay:.2s}
+[data-scene="3"] .card.a{animation:slideUp .5s both,flashRed .7s 1.6s both}
+[data-scene="3"] .card.b{animation:slideUp .5s .1s both,flashRed .7s 3.9s both}
+[data-scene="3"] .card.c{animation:slideUp .5s .2s both,flashRed .7s 6.2s both}
+@keyframes flashRed{0%{background:#FFFDF4}35%{background:rgba(173,4,4,.28)}100%{background:rgba(173,4,4,.08);border-color:#AD0404}}
+[data-scene="3"] .card.a .stamp{animation:slam .4s 1.6s both}
+[data-scene="3"] .card.b .stamp{animation:slam .4s 3.9s both}
+[data-scene="3"] .card.c .stamp{animation:slam .4s 6.2s both}
+[data-scene="3"] .card.a .why3{animation:fadeIn .4s 1.8s both}
+[data-scene="3"] .card.b .why3{animation:fadeIn .4s 4.1s both}
+[data-scene="3"] .card.c .why3{animation:fadeIn .4s 6.4s both}
+@keyframes slam{0%{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(2.6)}60%{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(.9)}100%{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}}
+.sub{font-size:calc(4.4*var(--u));font-weight:500}
+[data-scene="3"] .grid3{animation:zoomIn 8s ease-out both}
+@keyframes zoomIn{from{transform:scale(1)}to{transform:scale(1.06)}}
+
+/* Scene 4 */
+.banner{background:var(--navy);color:var(--paper);border-radius:calc(3*var(--u));padding:calc(4.5*var(--u)) calc(5*var(--u));width:100%}
+.banner h2{font-size:calc(6.4*var(--u))}
+.banner p{color:var(--gold);font-weight:600;font-size:calc(4*var(--u));margin-top:calc(2*var(--u))}
+[data-scene="4"] .banner{animation:drop .6s .3s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes drop{from{opacity:0;transform:translateY(calc(-14*var(--u)))}to{opacity:1;transform:none}}
+.gold{position:relative;width:calc(62*var(--u));background:var(--paper);border:calc(1*var(--u)) solid var(--gold);border-radius:calc(4*var(--u));padding:calc(5*var(--u)) calc(4*var(--u));box-shadow:0 0 0 rgba(255,204,46,0)}
+[data-scene="4"] .gold{animation:fadeIn .5s both,gpulse 1.4s .7s ease-in-out infinite alternate}
+@keyframes gpulse{from{box-shadow:0 0 calc(2*var(--u)) rgba(255,204,46,.5)}to{box-shadow:0 0 calc(7*var(--u)) calc(1*var(--u)) rgba(255,204,46,.95)}}
+.gold .dl{position:absolute;left:calc(-3*var(--u));top:calc(-3*var(--u));width:calc(10*var(--u));height:calc(10*var(--u));border-radius:50%;background:var(--gold);color:var(--ink);display:grid;place-items:center;font:800 calc(5.6*var(--u)) var(--display)}
+.check{position:absolute;right:calc(-6*var(--u));bottom:calc(-6*var(--u));width:calc(21*var(--u));height:calc(21*var(--u))}
+[data-scene="4"] .check{animation:pop .5s 1s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.cube{animation:none}.bbox{animation:none}}
+
+@container (min-aspect-ratio: 6/5){
+ .inner{--u:min(calc(1cqw / 1.5),calc(1cqh * 100 / 92))}
+ .scene{padding:calc(7*var(--u)) calc(9*var(--u));display:grid;grid-template-columns:1fr 1fr;align-content:center;align-items:center;justify-items:center;column-gap:calc(8*var(--u));row-gap:calc(3*var(--u));text-align:left}
+ .s1{grid-template-areas:"cube title" "cube bar" "cube tag"}
+ .s1 .title{grid-area:title;justify-self:start}
+ .s1 .bar{grid-area:bar;justify-self:start}
+ .s1 .cubeWrap{grid-area:cube;width:calc(44*var(--u));margin:0}
+ .s1 .tag{grid-area:tag;justify-self:start}
+ .s2{grid-template-areas:"net head" "net chip" "net why"}
+ .s2 .s2h{grid-area:head;justify-self:start}
+ .s2 .netBox{grid-area:net;width:calc(54*var(--u))}
+ .s2 .chip{grid-area:chip;justify-self:start}
+ .s2 .why{grid-area:why;justify-self:start;max-width:calc(52*var(--u))}
+ .s3{grid-template-columns:1fr;grid-template-areas:"head" "sub" "grid";text-align:center}
+ .s3 .s3h{grid-area:head}
+ .s3 .sub{grid-area:sub}
+ .s3 .grid3{grid-area:grid;max-width:calc(110*var(--u))}
+ .s4{grid-template-areas:"gold banner"}
+ .s4 .gold{grid-area:gold;width:calc(50*var(--u))}
+ .s4 .banner{grid-area:banner;text-align:left}
+}
+</style>
+</head>
+<body>
+
+
+
+<main class="wrap">
+ <div class="stage" id="stage" data-scene="0" role="region" aria-label="Animated walkthrough: find which cube net folds into the target cube. Option d is correct.">
+ <div class="inner">
+  <div class="prog"><i id="bar"></i></div>
+
+  <section class="scene s1">
+   <h1 class="title">Spatial Reasoning Trap-Buster</h1>
+   <div class="bar"></div>
+   <div class="cubeWrap" id="cubeWrap"><div class="bbox"></div><div class="cube" id="cube"></div></div>
+   <p class="tag">Which net folds into this cube?</p>
+  </section>
+
+  <section class="scene s2">
+   <h2 class="s2h">Step 1: Spot the Opposites First</h2>
+   <div class="netBox" id="netB"></div>
+   <div class="chip">1 face between = opposite faces</div>
+   <p class="why">Opposite faces can never touch on the cube. Net b puts the diagonal and the big square on opposite sides, so it is out.</p>
+  </section>
+
+  <section class="scene s3">
+   <h2 class="s3h">Avoid the Rotation Trap!</h2>
+   <p class="sub">Check your diagonal slopes.</p>
+   <div class="grid3">
+    <div class="card a"><span class="lab">a</span><div id="netA"></div><div class="stamp" id="sA"></div><p class="why3">Mirror image</p></div>
+    <div class="card b"><span class="lab">b</span><div id="netB2"></div><div class="stamp" id="sB"></div><p class="why3">Opposites touch</p></div>
+    <div class="card c"><span class="lab">c</span><div id="netC"></div><div class="stamp" id="sC"></div><p class="why3">Bolt turned 90&deg;</p></div>
+   </div>
+  </section>
+
+  <section class="scene s4">
+   <div class="banner"><h2>Option [d] Locks Cleanly!</h2><p>Strategy Beats Random Studying.</p></div>
+   <div class="gold"><span class="dl">d</span><div class="netBox" id="netD"></div>
+    <svg class="check" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#294A70" stroke="#FFCC2E" stroke-width="5"/><path d="M26 52 L44 70 L76 32" fill="none" stroke="#00FF00" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+   </div>
+  </section>
+  <div class="gate" id="gate">
+   <h1>Spatial Reasoning Trap-Buster</h1>
+   <p class="tag">A 25-second walkthrough: which net folds into the cube?</p>
+   <button id="go1" class="go" type="button">Start with sound</button>
+   <button id="go0" class="alt" type="button">Start without sound</button>
+   <small>Sound and vibration (on phones that support it) begin after you tap.</small>
+  </div>
+  <div class="ctl">
+   <button id="snd" type="button" aria-pressed="false">Sound: off</button>
+   <button id="rep" type="button">Replay</button>
+  </div>
+ </div>
+ </div>
+</main>
+
+<script>
+(function(){
+var C=40,INK='#1A1A1A';
+var G={"a":{"1,1":{"sq":[0,0]},"1,2":{"bolt":[[0.861,0],[0.472,0],[0.5,0.042],[0.167,0.375],[0.167,0.403],[0.611,0.583],[0.597,0.653],[0.306,1],[0.458,1],[0.958,0.542],[0.542,0.333]]},"2,2":{"dg":1}},"b":{"1,0":{"dg":1},"1,1":{"bolt":[[0.625,0.097],[0.417,0.556],[0.361,0.542],[0,0.25],[0,0.431],[0,0.403],[0.472,0.903],[0.681,0.486],[1,0.806],[1,0.444]]},"1,2":{"sq":[0.3333,0.3333]}},"c":{"1,1":{"sq":[0.3333,0]},"0,2":{"dg":1},"1,2":{"bolt":[[0.625,0.097],[0.403,0.556],[0,0.25],[0,0.431],[0.042,0.417],[0.444,0.889],[0.486,0.875],[0.667,0.472],[1,0.806],[1,0.458]]}},"d":{"1,1":{"sq":[0.3333,0.3333]},"2,1":{"bolt":[[0.542,0.111],[0.333,0.528],[0,0.208],[0,0.625],[0.042,0.556],[0.389,0.917],[0.583,0.458],[0.625,0.458],[1,0.778],[1,0.639]]},"1,2":{"dg":1}}};
+var LAY={a:[[1,0],[1,1],[0,2],[1,2],[2,2],[1,3]],b:[[1,0],[1,1],[1,2],[1,3],[0,2],[2,3]],c:[[2,0],[1,1],[2,1],[0,2],[1,2],[0,3]],d:[[1,0],[0,1],[1,1],[2,1],[1,2],[1,3]]};
+function el(id){return document.getElementById(id)}
+function glyph(g,s,w){
+  if(!g)return '';
+  var o='';
+  if(g.sq)o+='<rect x="'+g.sq[0]*s+'" y="'+g.sq[1]*s+'" width="'+(2*s/3)+'" height="'+(2*s/3)+'" fill="'+INK+'"/>';
+  if(g.bolt)o+='<polygon fill="'+INK+'" points="'+g.bolt.map(function(p){return (p[0]*s).toFixed(3)+','+(p[1]*s).toFixed(3)}).join(' ')+'"/>';
+  if(g.dg)o+='<line x1="0" y1="'+s+'" x2="'+s+'" y2="0" stroke="'+INK+'" stroke-width="'+w+'" vector-effect="non-scaling-stroke"/><rect x="'+(0.389*s)+'" y="'+(0.389*s)+'" width="'+(0.222*s)+'" height="'+(0.222*s)+'" fill="'+INK+'"/>';
+  return o;
+}
+function mkNet(k,hl){return LAY[k].map(function(p){var key=p[0]+','+p[1];return{x:p[0],y:p[1],g:G[k][key],hl:!!(hl&&hl.indexOf(key)>=0)}})}
+function net(cells,o){
+  o=o||{};var w=0,h=0,cs='',fl='',pad=6;
+  cells.forEach(function(k){w=Math.max(w,k.x+1);h=Math.max(h,k.y+1)});
+  cells.forEach(function(k){
+    var x=k.x*C,y=k.y*C,dx=0,dy=0,dist=0;
+    if(o.hub){dx=(o.hub.x-k.x)*C;dy=(o.hub.y-k.y)*C;dist=Math.abs(o.hub.x-k.x)+Math.abs(o.hub.y-k.y)}
+    cs+='<g class="cellg" style="--dx:'+dx+'px;--dy:'+dy+'px;--d:'+(0.3+dist*0.5).toFixed(2)+'s"><rect class="cell'+(k.hl?' hl':'')+'" x="'+x+'" y="'+y+'" width="'+C+'" height="'+C+'" rx="2"/>';
+    cs+='<g transform="translate('+x+' '+y+')">'+glyph(k.g,C,1.5)+'</g></g>';
+  });
+  var set={};cells.forEach(function(k){set[k.x+','+k.y]=1});
+  cells.forEach(function(k){
+    var x=k.x*C,y=k.y*C;
+    if(set[(k.x+1)+','+k.y])fl+='<line class="fold" x1="'+(x+C)+'" y1="'+y+'" x2="'+(x+C)+'" y2="'+(y+C)+'"/>';
+    if(set[k.x+','+(k.y+1)])fl+='<line class="fold" x1="'+x+'" y1="'+(y+C)+'" x2="'+(x+C)+'" y2="'+(y+C)+'"/>';
+  });
+  return '<svg viewBox="'+(-pad)+' '+(-pad)+' '+(w*C+2*pad)+' '+(h*C+2*pad)+'" class="'+(o.hub?'unfold':'')+'">'+cs+'<g class="folds">'+fl+'</g>'+(o.extra||'')+'</svg>';
+}
+var beam='<line class="beam" x1="'+1.5*C+'" y1="'+0.5*C+'" x2="'+1.5*C+'" y2="'+2.5*C+'" stroke="#FFCC2E" stroke-width="7" stroke-linecap="round" opacity="0"/><line class="beam" x1="'+1.5*C+'" y1="'+0.5*C+'" x2="'+1.5*C+'" y2="'+2.5*C+'" stroke="#294A70" stroke-width="2" stroke-dasharray="6 6" opacity="0"/>';
+el('netB').innerHTML=net(mkNet('b',['1,0','1,2']),{hub:{x:1,y:1},extra:beam});
+el('netA').innerHTML=net(mkNet('a'));
+el('netB2').innerHTML=net(mkNet('b'));
+el('netC').innerHTML=net(mkNet('c'));
+el('netD').innerHTML=net(mkNet('d'));
+var X='<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#AD0404"/><path d="M30 30 L70 70 M70 30 L30 70" stroke="#FFFDF4" stroke-width="12" stroke-linecap="round"/></svg>';
+['sA','sB','sC'].forEach(function(i){el(i).innerHTML=X});
+
+// cube: net d folded in 3D (face frames computed from the traced net), shown corner-on:
+// bolt face to the front, square face on top, diagonal face on the left.
+var CF={"1,0":{"t":[0.5,0.5,-0.5],"u":[0.0,0.0,1.0],"v":[-0.0,-1.0,0.0],"g":null},"0,1":{"t":[0.5,0.5,-0.5],"u":[-0.0,-1.0,0.0],"v":[-1.0,-0.0,0.0],"g":null},"1,1":{"t":[0.5,-0.5,-0.5],"u":[0.0,0.0,1.0],"v":[-1.0,0.0,0.0],"g":{"sq":[0.3333,0.3333]}},"2,1":{"t":[0.5,-0.5,0.5],"u":[0.0,1.0,0.0],"v":[-1.0,0.0,0.0],"g":{"bolt":[[0.542,0.111],[0.333,0.528],[0,0.208],[0,0.625],[0.042,0.556],[0.389,0.917],[0.583,0.458],[0.625,0.458],[1,0.778],[1,0.639]]}},"1,2":{"t":[-0.5,-0.5,-0.5],"u":[0.0,0.0,1.0],"v":[0.0,1.0,0.0],"g":{"dg":1}},"1,3":{"t":[-0.5,0.5,-0.5],"u":[0.0,0.0,1.0],"v":[1.0,0.0,0.0],"g":null}};
+var cube=el('cube'),wrapEl=el('cubeWrap');
+function build(){
+  var S=wrapEl.offsetWidth;wrapEl.style.perspective=(S*4.5)+'px';
+  if(!cube.children.length){
+    Object.keys(CF).forEach(function(key){
+      var d=document.createElement('div');d.className='f';d.dataset.k=key;
+      d.innerHTML='<svg viewBox="0 0 1 1" preserveAspectRatio="none">'+glyph(CF[key].g,1,2)+'</svg>';
+      cube.appendChild(d);
+    });
+  }
+  Array.prototype.forEach.call(cube.children,function(d){
+    var f=CF[d.dataset.k],u=f.u,v=f.v;
+    var n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+    d.style.transform='matrix3d('+[u[0],u[1],u[2],0,v[0],v[1],v[2],0,n[0],n[1],n[2],0,f.t[0]*S+S/2,f.t[1]*S+S/2,f.t[2]*S,1].join(',')+')';
+  });
+}
+build();addEventListener('resize',build);
+
+// audio + haptics
+var ac=null,on=false,master=null;
+function ensure(){
+  if(!ac){var A=window.AudioContext||window.webkitAudioContext;if(!A)return false;ac=new A();master=ac.createGain();master.gain.value=.55;master.connect(ac.destination)}
+  if(ac.state==='suspended')ac.resume();return true;
+}
+function noise(d){var b=ac.createBuffer(1,Math.floor(ac.sampleRate*d),ac.sampleRate),a=b.getChannelData(0);for(var i=0;i<a.length;i++)a[i]=Math.random()*2-1;var s=ac.createBufferSource();s.buffer=b;return s}
+function env(g,t,a,d,p){g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(p,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+d)}
+function tone(type,f,t,a,d,p,f2){var o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+a+d);env(g,t,a,d,p);o.connect(g);g.connect(master);o.start(t);o.stop(t+a+d+.05)}
+var sfx={
+  whoosh:function(){var t=ac.currentTime,n=noise(.6),f=ac.createBiquadFilter(),g=ac.createGain();f.type='bandpass';f.Q.value=1.2;f.frequency.setValueAtTime(300,t);f.frequency.exponentialRampToValueAtTime(3200,t+.45);env(g,t,.15,.35,.6);n.connect(f);f.connect(g);g.connect(master);n.start(t)},
+  crease:function(){var t=ac.currentTime;for(var k=0;k<3;k++){var n=noise(.1),f=ac.createBiquadFilter(),g=ac.createGain();f.type='highpass';f.frequency.value=1600;env(g,t+k*.18,.005,.07,.4);n.connect(f);f.connect(g);g.connect(master);n.start(t+k*.18)}},
+  lock:function(){var t=ac.currentTime;tone('sine',880,t,.01,.15,.35);tone('sine',1320,t+.13,.01,.2,.35)},
+  buzz:function(){var t=ac.currentTime,o=ac.createOscillator(),f=ac.createBiquadFilter(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(80,t+.35);f.type='lowpass';f.frequency.value=700;env(g,t,.01,.34,.3);o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+.45)},
+  chime:function(){var t=ac.currentTime;[1046.5,1318.5,1568,2093].forEach(function(f,i){tone('sine',f,t+i*.11,.01,.9,.26);tone('triangle',f*2,t+i*.11,.01,.5,.05)})}
+};
+var vib={whoosh:[40],crease:[15,40,15],lock:[30,70,30],buzz:[150],chime:[40,60,40,60,40]};
+function play(k){
+  if(!on)return;
+  try{if(ac)sfx[k]()}catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate(vib[k])}catch(e){}
+}
+var snd=el('snd');
+function label(){snd.textContent='Sound: '+(on?'on':'off');snd.setAttribute('aria-pressed',on?'true':'false')}
+snd.addEventListener('click',function(){
+  on=!on;
+  if(on){ensure();try{sfx.lock()}catch(e){}}
+  label();
+});
+
+// timeline (ms): scenes at 0, 5000, 14000, 22000; loop 25000
+var DUR=25000,ev=[{t:0,k:'whoosh'},{t:5300,k:'crease'},{t:9600,k:'lock'},{t:15600,k:'buzz'},{t:17900,k:'buzz'},{t:20200,k:'buzz'},{t:23000,k:'chime'}];
+var stage=el('stage'),bar=el('bar'),start=performance.now(),lastT=-1,lastNow=start;
+function fire(a,b){ev.forEach(function(e){if(e.t>a&&e.t<=b)play(e.k)})}
+function tick(now){
+  var t=(now-start)%DUR;
+  if(now-lastNow>400){lastT=t-1}
+  else if(t<lastT){fire(lastT,DUR+1);fire(-1,t)}
+  else fire(lastT,t);
+  lastT=t;lastNow=now;
+  var s=t<5000?'1':t<14000?'2':t<22000?'3':'4';
+  if(stage.dataset.scene!==s)stage.dataset.scene=s;
+  bar.style.width=(t/DUR*100)+'%';
+  requestAnimationFrame(tick);
+}
+function restart(){start=performance.now();lastT=-1;lastNow=start;stage.dataset.scene='0';void stage.offsetWidth}
+var running=false,gate=el('gate');
+el('rep').addEventListener('click',restart);
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&running)restart()});
+function begin(withSound){
+  on=withSound;if(on)ensure();label();
+  gate.hidden=true;restart();
+  if(!running){running=true;requestAnimationFrame(tick)}
+}
+el('go1').addEventListener('click',function(){begin(true)});
+el('go0').addEventListener('click',function(){begin(false)});
+})();
+</script>
+
+</body>
+</html>
